@@ -106,7 +106,7 @@ def snapshot_info(conn: sqlite3.Connection) -> dict:
             sources = json.loads(rows.get("snapshots") or "{}")
         except ValueError:
             sources = {}
-        hit = {"snapshot_id": f"amtsgraph-{built or 'unknown'}Z-{digest}",
+        hit = {"snapshot_id": f"taper-{built or 'unknown'}Z-{digest}",
                "built_at": rows.get("built_at"),
                "source_snapshots": sources,
                "schema_version": rows.get("schema_version")}
@@ -187,7 +187,7 @@ def _declared_query_names(route) -> frozenset | None:
     dependant = getattr(route, "dependant", None)
     if dependant is None:
         return None
-    names = getattr(route, "_amtsgraph_query_names", None)
+    names = getattr(route, "_taper_query_names", None)
     if names is None:
         aliases = set()
         pending = [dependant]
@@ -196,7 +196,7 @@ def _declared_query_names(route) -> frozenset | None:
             aliases.update(param.alias for param in current.query_params)
             pending.extend(current.dependencies)
         names = frozenset(aliases)
-        route._amtsgraph_query_names = names
+        route._taper_query_names = names
     return names
 
 
@@ -204,7 +204,7 @@ async def strict_query(request: Request) -> None:
     """App-wide dependency: reject undeclared and repeated query arguments.
 
     Runs after routing, so it sees exactly the parameters the matched
-    endpoint declares — also behind a mount prefix (/v1, /amtsgraph).
+    endpoint declares — also behind the /taper mount.
     """
     declared = _declared_query_names(request.scope.get("route"))
     if declared is None:

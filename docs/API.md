@@ -1,6 +1,6 @@
-# Amtsgraph API
+# Taper API
 
-Amtsgraph is the competence graph of German public authorities: for any place
+Taper is the competence graph of German public authorities: for any place
 (PLZ / Gemeinde) and legal matter it resolves the *competent* court instance
 chain, and for any Gemeinde it resolves the competent non-court authority
 (Ausländerbehörde, Jobcenter, Sozialamt, …) together with its supervisory
@@ -9,9 +9,9 @@ display both; for legal use an honest warning beats a confident wrong answer.
 
 There are **two** ways to query the graph:
 
-- **A) Production REST API** — `https://api.sntiq.com/v1` (FastAPI, JSON, CORS).
-  This is what the `sntiq.com/dt/amtsgraph` frontend calls through a thin
-  client. Source: [`api/main.py`](../api/main.py) (`title="Amtsgraph"`,
+- **A) Production REST API** — `https://api.sntiq.com/taper` (FastAPI, JSON, CORS).
+  This is what the `sntiq.com/dt/taper` frontend calls through a thin
+  client. Source: [`api/main.py`](../api/main.py) (`title="SNTIQ Taper"`,
   `version="2.2"`).
 - **B) Local dev browser** — `tools/browser.py` (port 8400, stdlib only,
   reads `data/atlas.db` read-only). A zero-dependency data browser with its
@@ -19,11 +19,11 @@ There are **two** ways to query the graph:
 
 Both read the same build artifact, `data/atlas.db`.
 
-### Lexgraph snapshot preconditions at the shared proxy
+### Kerf snapshot preconditions at the shared proxy
 
-The deployment config also proxies Lexgraph at `https://api.sntiq.com/lex/`.
-Requests with a nonempty `If-Lexgraph-Snapshot` header always reach the live
-Lexgraph worker: nginx neither reads nor writes its public cache for them.
+The deployment config also proxies Kerf at `https://api.sntiq.com/kerf/`.
+Requests with a nonempty `If-Kerf-Snapshot` header always reach the live
+Kerf worker: nginx neither reads nor writes its public cache for them.
 The worker returns `409 stale_snapshot` if the requested generation differs
 from its loaded corpus. A source outage remains an upstream error, even when
 a cached representation is available. Requests without a snapshot retain the
@@ -72,7 +72,7 @@ registry — answer with one envelope. The legacy fields the web viewer reads
   "request_scope": {"place_id": "place:jz:10115:BERLIN", "matter": "zivil"},
   "applied_constraints": {"place_id": "place:jz:10115:BERLIN", "matter": "zivil"},
   "ignored_arguments": [],
-  "snapshot_id": "amtsgraph-20260928T072529Z-dd16a74face0",
+  "snapshot_id": "taper-20260928T072529Z-dd16a74face0",
   "temporal": "current_only",
   "temporal_scope": {"mode": "current_only", "historical_supported": false, "basis": "…"},
   "searched": [{"source": "court_chain (justizadressen register observation)", "status": "ok", "count": 5}],
@@ -99,7 +99,7 @@ registry — answer with one envelope. The legacy fields the web viewer reads
 | `unavailable` | 503 | A store the operation needs is absent (`failed_components`). |
 
 Every route rejects undeclared query arguments with HTTP 400 and their
-names (also behind the `/v1` and `/amtsgraph` prefixes). `total` is `0` only
+names (also behind the `/taper` prefix). `total` is `0` only
 after a complete search; it is `null` when nothing was counted.
 
 ### Identities
@@ -110,7 +110,7 @@ after a complete search; it is `null` when nothing was counted.
 | `place:ags:<AGS>` | a municipality — the unit of **office** competence | yes (official key) |
 | `court:de:<XJustiz-ID>` | a German court (GDS.Gerichte codelist) | yes (official code) |
 | `court:eu:<ECLI court code>` | a court of the EU (`C`, `T`) | yes |
-| `authority_id` (integer) | an Amtsgraph row | **no** — local to one build |
+| `authority_id` (integer) | an Taper row | **no** — local to one build |
 
 ### `GET /resolve/place` — `place_resolve`
 
@@ -220,13 +220,13 @@ Mapping record (bulk: `GET /courts/mapping?limit=5000&offset=0`):
 
 ---
 
-# A) Production REST API — `https://api.sntiq.com/v1`
+# A) Production REST API — `https://api.sntiq.com/taper`
 
 JSON in, JSON out. CORS is enabled. All examples below use the base URL
-`https://api.sntiq.com/v1`; when running the API locally the default base is
+`https://api.sntiq.com/taper`; when running the API locally the default base is
 `http://127.0.0.1:8000` (`uvicorn api.main:app`).
 
-The database path can be overridden with the `AMTSGRAPH_DB` environment
+The database path can be overridden with the `TAPER_DB` environment
 variable (default: `<repo>/data/atlas.db`).
 
 ## Endpoint summary
@@ -256,7 +256,7 @@ Liveness. Returns `200 {"status":"ok"}` when the database is reachable, else
 `503`.
 
 ```bash
-curl -s https://api.sntiq.com/v1/health
+curl -s https://api.sntiq.com/taper/health
 ```
 ```json
 { "status": "ok" }
@@ -269,11 +269,11 @@ curl -s https://api.sntiq.com/v1/health
 Build metadata and the per-source snapshot dates baked into the dataset.
 
 ```bash
-curl -s https://api.sntiq.com/v1/version
+curl -s https://api.sntiq.com/taper/version
 ```
 ```json
 {
-  "dataset": "Amtsgraph",
+  "dataset": "SNTIQ Taper",
   "built_at": "2026-07-06T08:09:33+00:00",
   "source_snapshots": {
     "openplz": "2026-06-10",
@@ -292,7 +292,7 @@ Corpus counts. All counts are over **active** authorities (those with
 `valid_to IS NULL`) where applicable.
 
 ```bash
-curl -s https://api.sntiq.com/v1/stats
+curl -s https://api.sntiq.com/taper/stats
 ```
 ```json
 {
@@ -330,7 +330,7 @@ Record count contributed by each data source (active authorities only,
 descending).
 
 ```bash
-curl -s https://api.sntiq.com/v1/sources
+curl -s https://api.sntiq.com/taper/sources
 ```
 ```json
 [
@@ -360,7 +360,7 @@ Query parameters:
 | `limit` | int | `10` | Max matches. |
 
 ```bash
-curl -s 'https://api.sntiq.com/v1/places?q=Flensburg&limit=5'
+curl -s 'https://api.sntiq.com/taper/places?q=Flensburg&limit=5'
 ```
 ```json
 {
@@ -396,7 +396,7 @@ The legal-matter catalog, ordered `core DESC, grp`. Fields per row:
 `core` (`1` = one of the everyday matters, `0` = specialized).
 
 ```bash
-curl -s https://api.sntiq.com/v1/matters
+curl -s https://api.sntiq.com/taper/matters
 ```
 ```json
 [
@@ -429,7 +429,7 @@ authority plus every edge between active authorities. Compact arrays; the
 response is cached in-process and marked `Cache-Control: public, max-age=3600`.
 
 ```bash
-curl -s https://api.sntiq.com/v1/graph
+curl -s https://api.sntiq.com/taper/graph
 ```
 ```json
 {
@@ -505,7 +505,7 @@ Re-issue the request with the chosen `ort`.
 ### Case 2 — resolved chain
 
 ```bash
-curl -s 'https://api.sntiq.com/v1/resolve/court?plz=10115&matter=zivil'
+curl -s 'https://api.sntiq.com/taper/resolve/court?plz=10115&matter=zivil'
 ```
 ```json
 {
@@ -591,7 +591,7 @@ because court competence is matter-specific. Rejected kinds:
 `verwaltungsgericht`, `arbeitsgericht`, `finanzgericht`.
 
 ```bash
-curl -s 'https://api.sntiq.com/v1/resolve/authority?ags=01001000&kind=auslaenderbehoerde'
+curl -s 'https://api.sntiq.com/taper/resolve/authority?ags=01001000&kind=auslaenderbehoerde'
 ```
 ```json
 {
@@ -620,7 +620,7 @@ curl -s 'https://api.sntiq.com/v1/resolve/authority?ags=01001000&kind=auslaender
 Second example — an AsylbLG benefits authority (relevant for asylum cases):
 
 ```bash
-curl -s 'https://api.sntiq.com/v1/resolve/authority?ags=01002000&kind=asylblg_behoerde'
+curl -s 'https://api.sntiq.com/taper/resolve/authority?ags=01002000&kind=asylblg_behoerde'
 ```
 ```json
 {
@@ -659,7 +659,7 @@ kind or an unknown kind. Several rank-0 offices are `ambiguous_identity`
 Full card for one authority plus its outgoing and incoming edges.
 
 ```bash
-curl -s https://api.sntiq.com/v1/authorities/1024
+curl -s https://api.sntiq.com/taper/authorities/1024
 ```
 
 Returns the [authority card](#authority-card) with three extra keys:
@@ -762,7 +762,7 @@ curl -s 'http://127.0.0.1:8400/api/court?plz=10115&ortk=BERLIN&matter=zivil'
 
 ## Licensing
 
-Amtsgraph is **dual-licensed by audience** (see
+Taper is **dual-licensed by audience** (see
 [`LICENSING.md`](../LICENSING.md)):
 
 - **Non-commercial** (individuals, human-rights / non-profit, research,
@@ -774,11 +774,11 @@ Amtsgraph is **dual-licensed by audience** (see
   required, with a non-harm covenant, attribution, and case-by-case
   reciprocity.
 
-Attribution string: `Contains material from Amtsgraph by SNTIQ —
-https://github.com/SNTIQ-Team/amtsgraph`.
+Attribution string: `Contains material from Taper by SNTIQ —
+https://github.com/SNTIQ-Team/taper`.
 
 The dataset is general information, **not legal advice**. Underlying records
 originate from official German public registers whose own terms govern the raw
 records — see [`docs/SOURCES.md`](SOURCES.md).
 
-The public API powers **[sntiq.com/dt/amtsgraph](https://sntiq.com/dt/amtsgraph)**.
+The public API powers **[sntiq.com/dt/taper](https://sntiq.com/dt/taper)**.

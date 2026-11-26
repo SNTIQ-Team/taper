@@ -395,8 +395,8 @@ def test_missing_and_malformed_arguments_are_named(client):
     assert kind["invalid_arguments"] == ["kind"]
 
 
-@pytest.mark.parametrize("prefix", ["/v1", "/amtsgraph"])
-def test_mounted_prefixes_keep_the_contract(store, monkeypatch, prefix):
+def test_mounted_resolver_keeps_the_contract(store, monkeypatch):
+    prefix = "/taper"
     from fastapi import FastAPI
     from fastapi.testclient import TestClient
     from api import main
@@ -415,12 +415,12 @@ def test_mounted_prefixes_keep_the_contract(store, monkeypatch, prefix):
 
 def test_snapshot_pin_detects_a_different_build(client):
     current = get(client, "/resolve/place?purpose=court&q=12346")["snapshot_id"]
-    assert current.startswith("amtsgraph-20260928T000000Z-")
+    assert current.startswith("taper-20260928T000000Z-")
     same = get(client, f"/resolve/place?purpose=court&q=12346"
                        f"&snapshot_id={current}", 200)
     assert same["snapshot_id"] == current
     other = get(client, "/resolve/place?purpose=court&q=12346"
-                        "&snapshot_id=amtsgraph-old", 409)
+                        "&snapshot_id=taper-old", 409)
     assert other["status"] == "stale_snapshot"
     assert other["current_snapshot_id"] == current
 

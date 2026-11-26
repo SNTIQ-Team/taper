@@ -71,7 +71,7 @@ class Http:
         self.retries = retries
         self.s = requests.Session()
         self.s.headers["User-Agent"] = (
-            "Amtsgraph/1.0 (open-data pipeline; contact: see repo)")
+            "Taper/1.0 (open-data pipeline; contact: see repo)")
         self._last = 0.0
 
     def get(self, url: str, **kw) -> requests.Response:

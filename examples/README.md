@@ -1,4 +1,4 @@
-# Amtsgraph — worked examples
+# Taper — worked examples
 
 All examples run against the shipped `data/atlas.db`. Every result below
 was verified against the live official registers at build time.
@@ -40,7 +40,7 @@ JOIN court_chain cc ON cc.plz = jp.plz AND cc.ortk = jp.ortk
      AND cc.matter = 'zivil' AND cc.role = 'court' AND cc.position = 1
 JOIN authority a ON a.id = cc.authority_id
 WHERE jp.plz = '25712';
--- 9 localities resolving to different Amtsgerichte — why Amtsgraph
+-- 9 localities resolving to different Amtsgerichte — why Taper
 -- never groups by postal code alone
 ```
 
@@ -111,7 +111,7 @@ def court_chain(plz: str, ortk: str, matter: str) -> list[dict]:
 for step in court_chain("86720", "NOERDLINGEN", "insolv"):
     print(step["position"], step["role"], step["name"], "|", step["street"])
 # Note: the Insolvenzgericht often files at a DIFFERENT address than the
-# parent Amtsgericht — Amtsgraph keeps them as separate records.
+# parent Amtsgericht — Taper keeps them as separate records.
 ```
 
 ## HTTP (the bundled browser / API)

@@ -7,7 +7,7 @@ Court id scheme (stable across builds; authority ids are not):
 
 The node set is the official GDS.Gerichte codelist (XJustiz). Each node maps
 court id <-> official name <-> XJustiz id <-> ECLI court code (where known)
-<-> Amtsgraph authority rows (contact cards, court chains). ECLI codes of
+<-> Taper authority rows (contact cards, court chains). ECLI codes of
 Land courts are NOT guessed from names; they stay null until observed.
 """
 from __future__ import annotations

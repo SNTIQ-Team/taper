@@ -212,7 +212,7 @@ def frame(rates: dict[str, Rate], color: bool) -> tuple[str, dict]:
 
     now = datetime.now().strftime("%H:%M:%S")
     L = []
-    L.append(c("b", f"  Amtsgraph — harvest monitor   {now}"))
+    L.append(c("b", f"  Taper — harvest monitor   {now}"))
     L.append("")
     st = c("grn", "done") if not places_active else c("yel", f"{r_places:5.1f} PLZ/s")
     L.append(f"  {c('cya', 'JUSTIZ places ')} {bar(plz_done, plz_total)}  "

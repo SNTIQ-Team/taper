@@ -1,9 +1,9 @@
-# ⚖️ Amtsgraph
+# ⚖️ SNTIQ Taper
 
 **The open, validated graph of German public authorities — who is competent,
 where, and for what.**
 
-Amtsgraph answers the question every administrative or court procedure in
+Taper answers the question every administrative or court procedure in
 Germany starts with: *which authority is responsible for my matter at my
 location?* It covers:
 
@@ -49,7 +49,7 @@ location?* It covers:
 *(postal code, locality, matter)* — one rural postal code can contain nine
 villages in nine different court districts, and Berlin's 10115 and 12555
 share every structural register key yet belong to different Amtsgerichte.
-Amtsgraph queried the official register **once per place and matter**
+Taper queried the official register **once per place and matter**
 (196,798 combinations) instead of extrapolating.
 
 **2. A validation gate, not a scraper dump.** Every build must pass
@@ -107,15 +107,15 @@ Key invariants (see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)):
   mean only the procedure/domain stated in their `note` and `source_url`.
   CJEU rulings can bind German courts or the Member State in treaty-defined
   preliminary-ruling and infringement procedures; that effect is not an
-  appeal from a German judgment, so Amtsgraph does not encode a blanket
+  appeal from a German judgment, so Taper does not encode a blanket
   CJEU→German-court supervision edge.
 
 ## Quickstart
 
 The database is **not committed to git** — download it from the latest
-[GitHub Release](https://github.com/SNTIQ-Team/amtsgraph/releases)
+[GitHub Release](https://github.com/SNTIQ-Team/taper/releases)
 (`atlas.sqlite` + SHA-256 + validation report) or take the JSONL export
-from the [Hugging Face dataset](https://huggingface.co/datasets/SNTIQ-Team/amtsgraph).
+from the [Hugging Face dataset](https://huggingface.co/datasets/SNTIQ-Team/taper).
 
 ```bash
 pip install -r requirements.txt
@@ -208,12 +208,12 @@ Dual-licensed **by audience** — see [LICENSING.md](LICENSING.md):
 ## Citation
 
 ```bibtex
-@misc{amtsgraph2026,
-  title   = {Amtsgraph: an open validated graph of German public
+@misc{taper2026,
+  title   = {Taper: an open validated graph of German public
              authorities, court competences and organisational structure},
   author  = {Glushkov, David and {SNTIQ}},
   year    = {2026},
-  url     = {https://github.com/SNTIQ-Team/amtsgraph}
+  url     = {https://github.com/SNTIQ-Team/taper}
 }
 ```
 
@@ -241,8 +241,8 @@ name and ECLI code (`/courts/mapping`). See docs/API.md, "Evidence envelope".
 ### One research interface
 
 `GET /research?q=AsylbLG&ags=09177117&kind=asylblg_behoerde` combines the existing
-Lexgraph legal search and Amtsgraph assignment resolver. On production the path
-is `/v1/research`. Each component retains source metadata, ambiguity and failures;
+Kerf legal search and Taper assignment resolver. On production the path
+is `/taper/research`. Each component retains source metadata, ambiguity and failures;
 no new corpus copy or speculative statutory competence edge is created. Exact
 historical text uses `act_id`, optional `norm`, `at` and timezone-aware `known_at`.
 Historical authority resolution is explicitly unsupported. The pure `research`

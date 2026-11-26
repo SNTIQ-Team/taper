@@ -26,11 +26,11 @@ def test_transport_carries_actual_byte_hash_and_snapshot(monkeypatch):
     from email.message import Message
     import io, hashlib
     body=b'{"status":"ok","total":0}'
-    headers=Message();headers['Content-Type']='application/json';headers['X-Lexgraph-Snapshot']='release-test'
+    headers=Message();headers['Content-Type']='application/json';headers['X-Kerf-Snapshot']='release-test'
     class Response(io.BytesIO):pass
     response=Response(body);response.headers=headers
     monkeypatch.setattr(module,'urlopen',lambda *args,**kwargs:response)
-    result=module.lexgraph_get('/search?q=x')
+    result=module.kerf_get('/search?q=x')
     assert result['data']['total']==0
     assert result['representation']['sha256']==hashlib.sha256(body).hexdigest()
     assert result['representation']['snapshot']=='release-test'
@@ -42,7 +42,7 @@ def test_transport_does_not_mask_source_integrity_or_snapshot_failure(monkeypatc
     def fail(*args,**kwargs):
         raise HTTPError('fixture',503,'unavailable',{},io.BytesIO(b'{"detail":{"status":"integrity_check_failed"}}'))
     monkeypatch.setattr(module,'urlopen',fail)
-    assert module.lexgraph_get('/search?q=x')['reason']=='integrity_check_failed'
+    assert module.kerf_get('/search?q=x')['reason']=='integrity_check_failed'
 
 def test_joint_scope_preserves_assignment_and_legal_source_metadata():
     calls=[]
@@ -76,6 +76,6 @@ def test_http_contract_rejects_unimplemented_scope_and_does_not_call_upstream():
 def test_historical_text_keeps_both_axes_and_source_headers():
     seen=[]
     result=research(scope={'act_id':'fed_asylblg','at':'2020-01-01','known_at':'2026-09-27T00:00:00+00:00'},court=None,authority=None,
-                    legal=lambda route:(seen.append(route) or {'status':'ok','data':{'text':'fixture','metadata':{'X-Lexgraph-Source-Exact':'false'}}}))
+                    legal=lambda route:(seen.append(route) or {'status':'ok','data':{'text':'fixture','metadata':{'X-Kerf-Source-Exact':'false'}}}))
     assert 'as_of=2026-09-27T00%3A00%3A00%2B00%3A00' in seen[0]
-    assert result['components']['law_text']['data']['metadata']['X-Lexgraph-Source-Exact']=='false'
+    assert result['components']['law_text']['data']['metadata']['X-Kerf-Source-Exact']=='false'

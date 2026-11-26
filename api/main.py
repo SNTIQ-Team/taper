@@ -1,4 +1,4 @@
-"""Amtsgraph — resolution API (matter-aware, evidence-carrying).
+"""Taper — resolution API (matter-aware, evidence-carrying).
 
 Identity and competence operations (see docs/API.md, "Evidence envelope"):
 
@@ -38,11 +38,11 @@ from api.contract import (HTTP_STATUS, STATUSES, TEMPORAL_SCOPE,
                           check_snapshot, install, request_scope, respond,
                           snapshot_info, strict_query)
 
-# Deployment override: AMTSGRAPH_DB=/path/to/atlas.db (default: repo layout)
+# Deployment override: TAPER_DB=/path/to/atlas.db (default: repo layout)
 DB_PATH = Path(os.environ.get(
-    "AMTSGRAPH_DB",
+    "TAPER_DB",
     Path(__file__).resolve().parent.parent / "data" / "atlas.db"))
-app = FastAPI(title="Amtsgraph", version="3.0",
+app = FastAPI(title="SNTIQ Taper", version="3.0",
               dependencies=[Depends(strict_query)])
 install(app)
 
@@ -61,7 +61,7 @@ COURT_KINDS = domain.COURT_KINDS
 @app.get("/capabilities")
 def capabilities():
     return {
-        "schema_version": 2, "service": "amtsgraph",
+        "schema_version": 2, "service": "taper",
         "temporal": "current_only",
         "temporal_scope": TEMPORAL_SCOPE,
         "historical_arguments": "rejected with unsupported_temporal_request",
@@ -111,7 +111,7 @@ def health():
 @app.get("/version")
 def version():
     info = snapshot_info(db())
-    return {"dataset": "Amtsgraph",
+    return {"dataset": "SNTIQ Taper",
             "built_at": info["built_at"],
             "snapshot_id": info["snapshot_id"],
             "schema_version": info["schema_version"],

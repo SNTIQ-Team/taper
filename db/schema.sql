@@ -1,4 +1,4 @@
--- Amtsgraph — SQLite schema (correctness-first)
+-- Taper — SQLite schema (correctness-first)
 -- The DB is a build artifact: rebuilt from snapshots + overrides, never hand-edited.
 --
 -- Design notes (see docs/ARCHITECTURE.md):
@@ -311,7 +311,7 @@ CREATE TABLE court_alias (
 );
 CREATE INDEX idx_court_alias_norm ON court_alias(alias_norm);
 
--- court node <-> Amtsgraph authority rows (contact cards, court chains)
+-- court node <-> Taper authority rows (contact cards, court chains)
 CREATE TABLE court_authority (
     court_id     TEXT NOT NULL REFERENCES court(court_id),
     authority_id INTEGER NOT NULL REFERENCES authority(id),

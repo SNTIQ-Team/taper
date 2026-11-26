@@ -83,10 +83,10 @@ def export(out: Path) -> dict[str, int]:
 CARD = """---
 license: other
 license_name: sntiq-dual-by-audience
-license_link: https://github.com/SNTIQ-Team/amtsgraph/blob/main/LICENSING.md
+license_link: https://github.com/SNTIQ-Team/taper/blob/main/LICENSING.md
 language:
   - de
-pretty_name: "Amtsgraph — German authority and EU institution graph"
+pretty_name: "SNTIQ Taper — German authority and EU institution graph"
 tags:
   - germany
   - european-union
@@ -102,7 +102,7 @@ configs:
 {configs}
 ---
 
-# Amtsgraph
+# SNTIQ Taper
 
 **The open, validated graph of German public authorities and a curated,
 source-backed EU institutional layer — who is competent, where, and for
@@ -185,17 +185,17 @@ Empty fields are deliberate, not dirty data:
 ## Citation
 
 ```bibtex
-@misc{{amtsgraph2026,
-  title   = {{Amtsgraph: an open validated graph of German public
+@misc{{taper2026,
+  title   = {{Taper: an open validated graph of German public
              authorities, court competences and organisational structure}},
   author  = {{Glushkov, David and {{SNTIQ}}}},
   year    = {{2026}},
-  url     = {{https://github.com/SNTIQ-Team/amtsgraph}}
+  url     = {{https://github.com/SNTIQ-Team/taper}}
 }}
 ```
 
 Source code, pipeline and full documentation:
-**https://github.com/SNTIQ-Team/amtsgraph**
+**https://github.com/SNTIQ-Team/taper**
 """
 
 

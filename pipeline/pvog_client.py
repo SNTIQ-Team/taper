@@ -10,7 +10,7 @@ import time
 import requests
 
 BASE = "https://pvog.fitko.net/suchdienst/api"
-UA = {"User-Agent": "Amtsgraph/1.0 (open data pipeline)"}
+UA = {"User-Agent": "Taper/1.0 (open data pipeline)"}
 
 
 class PvogClient:

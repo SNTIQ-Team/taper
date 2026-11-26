@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Amtsgraph — hierarchical data browser (test tool, stdlib only).
+"""Taper — hierarchical data browser (test tool, stdlib only).
 
 Serves data/atlas.db read-only: Land → Kreis → Gemeinde tree, instant
 search, authority cards per kind, and the court resolver (PLZ × matter →
@@ -328,7 +328,7 @@ except OSError:
 
 PAGE = r"""<!doctype html><html lang="de"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Amtsgraph — SNTIQ</title>
+<title>Taper — SNTIQ</title>
 <link rel="icon" href="/sntiq.svg">
 <style>
 :root{
@@ -387,7 +387,7 @@ button:hover{border-color:var(--acc)}
 .sr{padding:5px 9px;cursor:pointer;border-radius:5px}.sr:hover{background:var(--bg2)}
 .sr .ctx{color:var(--dim2);font-size:11px}
 .kbadge{color:var(--dim);font-weight:400}
-/* nav + view switching (shared chrome with Lexgraph) */
+/* nav + view switching (shared chrome with Kerf) */
 nav{display:flex;gap:4px;margin-left:8px}
 nav button{background:none;border:1px solid transparent;color:var(--dim);
 padding:7px 14px;border-radius:7px;cursor:pointer;font-size:13.5px}
@@ -477,7 +477,7 @@ background:rgba(20,25,34,.92);border:1px solid var(--line);border-radius:8px;
 padding:6px 14px;font-size:12px;color:var(--dim);backdrop-filter:blur(6px);max-width:70vw}
 </style></head><body>
 <header>
- <div class="brand"><img src="/sntiq.svg" class="logo" alt="SNTIQ">Amtsgraph
+ <div class="brand"><img src="/sntiq.svg" class="logo" alt="SNTIQ">Taper
  <small>Kompetenzgraph der deutschen Behörden</small></div>
  <nav>
   <button data-v="overview" class="on" data-i="nav_overview"></button>
@@ -486,8 +486,8 @@ padding:6px 14px;font-size:12px;color:var(--dim);backdrop-filter:blur(6px);max-w
   <button data-v="graph" data-i="nav_graph"></button>
  </nav>
  <div class="right">
-  <a class="hlink" href="https://github.com/SNTIQ-Team/amtsgraph/blob/main/docs/API.md" target="_blank" rel="noopener">Docs</a>
-  <a class="hlink" href="https://api.sntiq.com/v1/docs" target="_blank" rel="noopener">API</a>
+  <a class="hlink" href="https://github.com/SNTIQ-Team/taper/blob/main/docs/API.md" target="_blank" rel="noopener">Docs</a>
+  <a class="hlink" href="https://api.sntiq.com/taper/docs" target="_blank" rel="noopener">API</a>
   <div class="lang"><button data-l="de" class="on">DE</button><button data-l="en">EN</button></div>
   <span class="built" id="built"><span class="pulse"></span>…</span></div>
 </header>
@@ -967,7 +967,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--port", type=int, default=8400)
     args = ap.parse_args()
-    print(f"Amtsgraph browser → http://127.0.0.1:{args.port}/")
+    print(f"Taper browser → http://127.0.0.1:{args.port}/")
     ThreadingHTTPServer(("127.0.0.1", args.port), Handler).serve_forever()
 
 

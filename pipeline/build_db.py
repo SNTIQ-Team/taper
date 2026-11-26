@@ -1130,7 +1130,7 @@ def load_courts(db: sqlite3.Connection, snap: Path | None,
                       AND p.unit_type = 'court')
                   WHERE unit_type = 'department' AND jurisdiction = 'DE'""")
 
-    # Amtsgraph authority rows <-> court node (by XJustiz code, never name)
+    # Taper authority rows <-> court node (by XJustiz code, never name)
     for aid, code, name in db.execute(
             """SELECT a.id, e.value, a.name FROM authority_external_id e
                JOIN authority a ON a.id = e.authority_id

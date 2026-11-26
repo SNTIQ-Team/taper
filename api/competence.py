@@ -1,4 +1,4 @@
-"""Amtsgraph domain operations: place identity, competence, evidence.
+"""Taper domain operations: place identity, competence, evidence.
 
 Pure functions over an open SQLite connection. The REST routes in
 ``api.main`` and a future MCP adapter call the same functions, so the
@@ -58,7 +58,7 @@ REGISTERS = {
         "name": "BayernPortal — Behördenwegweiser und Organigramme",
         "url": "https://www.bayernportal.de/"},
     "override": {
-        "name": "Amtsgraph curated correction (pipeline/overrides)",
+        "name": "Taper curated correction (pipeline/overrides)",
         "url": None},
 }
 

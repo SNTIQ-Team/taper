@@ -1,6 +1,6 @@
 # Licensing
 
-Amtsgraph is dual-licensed **by audience**. Three license texts apply;
+Taper is dual-licensed **by audience**. Three license texts apply;
 which ones govern your use depends on who you are.
 
 ## Non-commercial track
@@ -34,9 +34,9 @@ All use by commercial entities, corporations and public-sector bodies —
 
 ## Designations under the SNTIQ-CM and CC licenses
 
-- **Project**: Amtsgraph
-- **Attribution string**: `Contains material from Amtsgraph by SNTIQ —
-  https://github.com/SNTIQ-Team/amtsgraph`
+- **Project**: Taper
+- **Attribution string**: `Contains material from Taper by SNTIQ —
+  https://github.com/SNTIQ-Team/taper`
 - **Permission contact**: https://sntiq.com/ or this repository's issues
 
 ## In every case

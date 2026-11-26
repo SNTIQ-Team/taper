@@ -57,7 +57,7 @@ def main() -> int:
            WHERE a.valid_to IS NULL GROUP BY c.kind""")}
 
     report = {
-        "dataset": "Amtsgraph",
+        "dataset": "Taper",
         "report_date": date.today().isoformat(),
         "built_at": built_at,
         "source_snapshots": snapshots,
@@ -103,7 +103,7 @@ def main() -> int:
 
     # ---- coverage.md ----------------------------------------------------
     lines = [
-        f"# Amtsgraph coverage report — {date.today().isoformat()}",
+        f"# Taper coverage report — {date.today().isoformat()}",
         "",
         f"Build: `{built_at}` · validation: "
         f"{'**PASSED**' if not errors else '**FAILED**'}",

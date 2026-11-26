@@ -11,13 +11,13 @@ from fastapi import APIRouter, HTTPException, Query, Request
 
 from api.contract import ContractError
 
-LEXGRAPH = os.environ.get('LEXGRAPH_RESEARCH_URL', 'http://127.0.0.1:8002').rstrip('/')
+KERF = os.environ.get('KERF_RESEARCH_URL', 'http://127.0.0.1:8002').rstrip('/')
 MAX_BYTES = 4 * 1024 * 1024
 ALLOWED = {'q', 'limit', 'plz', 'ortk', 'matter', 'ags', 'kind', 'act_id', 'norm', 'at', 'known_at'}
 
-def lexgraph_get(route):
+def kerf_get(route):
     try:
-        with urlopen(LEXGRAPH + route, timeout=12) as response:
+        with urlopen(KERF + route, timeout=12) as response:
             body = response.read(MAX_BYTES + 1)
             if len(body) > MAX_BYTES:
                 return {'status': 'unavailable', 'reason': 'response_too_large'}
@@ -26,17 +26,17 @@ def lexgraph_get(route):
                 data = json.loads(body)
             elif content_type in ('text/markdown', 'text/plain'):
                 data = {'text': body.decode('utf-8'), 'metadata': {
-                    k: v for k, v in response.headers.items() if k.lower().startswith('x-lexgraph-')}}
+                    k: v for k, v in response.headers.items() if k.lower().startswith('x-kerf-')}}
             else:
                 return {'status': 'unavailable', 'reason': 'upstream_representation_unusable'}
             if not isinstance(data, dict):
                 return {'status': 'unavailable', 'reason': 'upstream_representation_unusable'}
-            headers = {k.lower(): v for k, v in response.headers.items() if k.lower().startswith('x-lexgraph-')}
+            headers = {k.lower(): v for k, v in response.headers.items() if k.lower().startswith('x-kerf-')}
             return {'status': 'partial' if data.get('status') == 'partial' else 'ok', 'data': data,
-                    'representation': {'service': 'lexgraph', 'route': route, 'media_type': content_type,
+                    'representation': {'service': 'kerf', 'route': route, 'media_type': content_type,
                         'sha256': hashlib.sha256(body).hexdigest(), 'bytes': len(body),
                         'retrieved_at': datetime.now(timezone.utc).isoformat(),
-                        'snapshot': headers.get('x-lexgraph-snapshot'), 'source_metadata': headers}}
+                        'snapshot': headers.get('x-kerf-snapshot'), 'source_metadata': headers}}
 
     except HTTPError as exc:
         reasons = {404: 'not_in_corpus', 409: 'ambiguous_identity', 422: 'unsupported_request'}
@@ -99,7 +99,7 @@ def validate_scope(scope):
     return {'limit': 10, **scope}
 
 
-def research(*, scope, court, authority, legal=lexgraph_get):
+def research(*, scope, court, authority, legal=kerf_get):
     """Callable from HTTP, batch, tests and a future MCP adapter."""
     scope = validate_scope(scope)
     components = {}
@@ -114,7 +114,7 @@ def research(*, scope, court, authority, legal=lexgraph_get):
         components['authority'] = component(lambda: authority(ags=scope['ags'], kind=scope['kind']))
     snapshots = {c.get('representation', {}).get('snapshot') for name, c in components.items()
                  if name.startswith('law_') and c.get('representation', {}).get('snapshot')}
-    issues = [{'reason': 'mixed_snapshots', 'service': 'lexgraph', 'snapshots': sorted(snapshots)}] if len(snapshots) > 1 else []
+    issues = [{'reason': 'mixed_snapshots', 'service': 'kerf', 'snapshots': sorted(snapshots)}] if len(snapshots) > 1 else []
     return {'schema_version': 1, 'status': 'ok' if not issues and all(c['status'] == 'ok' for c in components.values()) else 'partial',
             'issues': issues,
             'request_scope': scope, 'observed_at': datetime.now(timezone.utc).isoformat(),

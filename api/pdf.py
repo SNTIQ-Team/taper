@@ -10,7 +10,7 @@
   - "Per Fax vorab: <fax>" appears only when a fax number is supplied;
   - the "Ihr Az. / Schr. v." info lines are optional.
 
-Contract (Schutzbrief module README): known template ids only, strict
+Contract (Chamfer module README): known template ids only, strict
 payload limits, stateless render -> stream -> discard, never cached,
 render pool capped for the 1-GB host.
 """
@@ -25,14 +25,14 @@ from fastapi import APIRouter, HTTPException, Response
 from fpdf import FPDF
 from pydantic import BaseModel, Field, field_validator
 
-router = APIRouter(prefix="/v1/pdf", tags=["pdf"])
+router = APIRouter(prefix="/chamfer", tags=["chamfer"])
 
 FONT_DIR = Path(os.environ.get(
     "SNTIQ_PDF_FONT_DIR", Path(__file__).resolve().parent / "fonts"))
 
 RDG_NOTE = (
     "Hinweis nach dem Rechtsdienstleistungsgesetz (RDG): Dieses Dokument "
-    "wurde mit dem nichtkommerziellen Selbsthilfe-Generator „Briefcraft“ "
+    "wurde mit dem nichtkommerziellen Selbsthilfe-Generator „Chamfer“ "
     "(SNTIQ: Deutschland Together n. e. V.) als Entwurf erstellt. Ich habe "
     "den Inhalt selbst geprüft, bei Bedarf angepasst und eigenverantwortlich "
     "unterschrieben; SNTIQ hat meinen Einzelfall nicht rechtlich geprüft, "
@@ -40,7 +40,7 @@ RDG_NOTE = (
     "i. S. d. § 2 Abs. 1 RDG). Die Verantwortung für Inhalt, Richtigkeit "
     "und Einreichung liegt allein bei mir.")
 
-SLIM_NOTE = "Erstellt mit Briefcraft / SNTIQ — sntiq.com · kein Rechtsbeistand"
+SLIM_NOTE = "Erstellt mit Chamfer / SNTIQ — sntiq.com · kein Rechtsbeistand"
 
 # at most N concurrent renders; the rest wait briefly, then 503
 _POOL = threading.BoundedSemaphore(2)
@@ -245,7 +245,7 @@ def pdf_letter(payload: LetterPayload) -> Response:
         media_type=media_type,
         headers={
             "Content-Disposition":
-                f'attachment; filename="schutzbrief-{payload.template}.{ext}"',
+                f'attachment; filename="chamfer-{payload.template}.{ext}"',
             # PII inside — never cache anywhere
             "Cache-Control": "no-store",
         },

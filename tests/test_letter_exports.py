@@ -20,14 +20,22 @@ def test_downloaded_letters_preserve_the_postal_address_without_a_converter(monk
         "body": "Ich beantrage die Erstattung.",
     }
     with TestClient(server) as client:
-        docx = client.post("/pdf/letter", json={**letter, "format": "docx"})
-        pdf = client.post("/pdf/letter", json={**letter, "format": "pdf"})
+        docx = client.post("/chamfer/letter", json={**letter, "format": "docx"})
+        pdf = client.post("/chamfer/letter", json={**letter, "format": "pdf"})
     assert docx.status_code == pdf.status_code == 200
-    assert docx.headers["content-disposition"].endswith('.docx"')
-    assert pdf.headers["content-disposition"].endswith('.pdf"')
+    assert 'filename="chamfer-letter.docx"' in docx.headers["content-disposition"]
+    assert 'filename="chamfer-letter.pdf"' in pdf.headers["content-disposition"]
     word = Document(BytesIO(docx.content))
     word_text = " ".join(word.element.body.itertext())
     pdf_text = " ".join(page.extract_text() for page in PdfReader(BytesIO(pdf.content)).pages)
     for line in [*recipient, letter["subject"], letter["body"]]:
         assert line in word_text
         assert line in pdf_text
+
+
+def test_retired_public_api_routes_are_absent():
+    with TestClient(server) as client:
+        for path in ("/v1", "/v1/health", "/v1/docs", "/amtsgraph/", "/amtsgraph/health", "/lex/docs"):
+            assert client.get(path, follow_redirects=False).status_code == 404, path
+        for path in ("/pdf/letter", "/v1/pdf/letter"):
+            assert client.post(path, json={}, follow_redirects=False).status_code == 404, path

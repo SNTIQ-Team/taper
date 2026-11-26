@@ -1,24 +1,6 @@
-"""SNTIQ Platform API — the api.sntiq.com entry point.
+"""SNTIQ platform API for the Taper resolver and Chamfer letter export.
 
-Composition root for every backend service the platform ships:
-
-    /                   service index (JSON; HTML landing page for browsers)
-    /health             liveness + database check (used by uptime monitors)
-    /v1/...             Amtsgraph resolver (mounted sub-application)
-    /v1/pdf/letter      Briefcraft — stateless DIN-5008 letter rendering
-    /tts/speak          read-aloud fallback — stateless espeak-ng synthesis
-
-Adding a future service
------------------------
-1. Build it as its own module with an APIRouter (or FastAPI sub-app).
-2. Register it below — parent routes are matched in registration order,
-   so explicit routes (e.g. /v1/pdf/*) MUST be added before the
-   catch-all mount of the Amtsgraph app on /v1.
-3. List it in SERVICE_INDEX so GET / stays an honest map of the API.
-
-Run (systemd unit sntiq-api.service):
-    AMTSGRAPH_DB=/srv/sntiq-api/data/atlas.db \
-    uvicorn api.server:server --host 127.0.0.1 --port 8001
+Run with TAPER_DB set to the dataset path and uvicorn api.server:server.
 """
 from __future__ import annotations
 
@@ -30,71 +12,43 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 from pathlib import Path
 
-from api.main import DB_PATH, app as amtsgraph
-from api.pdf import pdf_letter, router as pdf_router
+from api.main import DB_PATH, app as taper
+from api.pdf import router as chamfer_router
 from api.tts import router as tts_router
 
 SERVICE_INDEX = {
     "service": "sntiq-api",
     "operator": "SNTIQ n.e.V. — https://sntiq.com",
-    "versions": {
-        "v1": {
-            "amtsgraph": {
-                "status": "live",
-                "docs": "/v1/docs",
-                "endpoints": [
-                    "/v1/health", "/v1/version", "/v1/stats", "/v1/sources",
-                    "/v1/capabilities", "/v1/places", "/v1/graph",
-                    "/v1/matters", "/v1/resolve/place",
-                    "/v1/resolve/competence", "/v1/resolve/court",
-                    "/v1/resolve/authority", "/v1/authorities/{id}",
-                    "/v1/courts", "/v1/courts/{court_id}",
-                    "/v1/courts/lookup", "/v1/courts/mapping",
-                ],
-                "dataset": "https://github.com/SNTIQ-Team/amtsgraph",
-            },
-            "pdf": {
-                "status": "live",
-                "endpoints": ["/v1/pdf/letter"],
-                "note": "stateless DIN-5008 rendering; nothing stored",
-            },
-        },
-    },
-    # Canonical, service-scoped paths. The /v1/* block above stays as a
-    # permanent backward-compatibility alias — both prefixes serve the same
-    # app instances.
     "services": {
-        "amtsgraph": {
+        "taper": {
             "status": "live",
-            "docs": "/amtsgraph/docs",
+            "docs": "/taper/docs",
             "endpoints": [
-                "/amtsgraph/health", "/amtsgraph/version", "/amtsgraph/stats",
-                "/amtsgraph/sources", "/amtsgraph/capabilities",
-                "/amtsgraph/places", "/amtsgraph/graph", "/amtsgraph/matters",
-                "/amtsgraph/resolve/place", "/amtsgraph/resolve/competence",
-                "/amtsgraph/resolve/court", "/amtsgraph/resolve/authority",
-                "/amtsgraph/authorities/{id}", "/amtsgraph/courts",
-                "/amtsgraph/courts/{court_id}", "/amtsgraph/courts/lookup",
-                "/amtsgraph/courts/mapping",
+                "/taper/health", "/taper/version", "/taper/stats",
+                "/taper/sources", "/taper/capabilities",
+                "/taper/places", "/taper/graph", "/taper/matters",
+                "/taper/resolve/place", "/taper/resolve/competence",
+                "/taper/resolve/court", "/taper/resolve/authority",
+                "/taper/authorities/{id}", "/taper/courts",
+                "/taper/courts/{court_id}", "/taper/courts/lookup",
+                "/taper/courts/mapping",
             ],
-            "legacy_prefix": "/v1",
-            "dataset": "https://github.com/SNTIQ-Team/amtsgraph",
+            "dataset": "https://github.com/SNTIQ-Team/taper",
         },
-        "lexgraph": {
+        "kerf": {
             "status": "live",
-            "docs": "/lex/docs",
+            "docs": "/kerf/docs",
             "endpoints": [
-                "/lex/acts", "/lex/acts/{id}", "/lex/git", "/lex/feed",
-                "/lex/hierarchy", "/lex/graph", "/lex/search",
-                "/lex/decisions", "/lex/decisions/{id}", "/lex/digest",
-                "/lex/stats", "/lex/health",
+                "/kerf/acts", "/kerf/acts/{id}", "/kerf/git", "/kerf/feed",
+                "/kerf/hierarchy", "/kerf/graph", "/kerf/search",
+                "/kerf/decisions", "/kerf/decisions/{id}", "/kerf/digest",
+                "/kerf/stats", "/kerf/health",
             ],
-            "dataset": "https://github.com/SNTIQ-Team/lexgraph",
+            "dataset": "https://github.com/SNTIQ-Team/kerf",
         },
-        "pdf": {
+        "chamfer": {
             "status": "live",
-            "endpoints": ["/pdf/letter"],
-            "legacy_prefix": "/v1/pdf",
+            "endpoints": ["/chamfer/letter"],
             "note": "stateless DIN-5008 rendering; nothing stored",
         },
         "tts": {
@@ -103,7 +57,7 @@ SERVICE_INDEX = {
             "note": "stateless espeak-ng synthesis; nothing stored",
         },
     },
-    "dataset": "https://github.com/SNTIQ-Team/amtsgraph",
+    "dataset": "https://github.com/SNTIQ-Team/taper",
 }
 
 
@@ -222,49 +176,49 @@ INDEX_HTML = """<!doctype html>
   <section class="grid">
     <article class="card">
       <div class="status"><span class="dot"></span>live</div>
-      <h2>Amtsgraph</h2>
+      <h2>SNTIQ Taper</h2>
       <p class="tagline">German authorities, court competences &amp; EU institutions</p>
-      <p class="desc">__AMTSGRAPH_COUNTS__</p>
+      <p class="desc">__TAPER_COUNTS__</p>
       <ul class="endpoints mono">
-        <li>/amtsgraph/resolve/court</li>
-        <li>/amtsgraph/resolve/authority</li>
-        <li>/amtsgraph/places</li>
-        <li>/amtsgraph/stats</li>
+        <li>/taper/resolve/court</li>
+        <li>/taper/resolve/authority</li>
+        <li>/taper/places</li>
+        <li>/taper/stats</li>
       </ul>
       <div class="links">
-        <a href="/amtsgraph/docs">Interactive docs</a>
-        <a href="https://github.com/SNTIQ-Team/amtsgraph">Dataset</a>
+        <a href="/taper/docs">Interactive docs</a>
+        <a href="https://github.com/SNTIQ-Team/taper">Dataset</a>
       </div>
     </article>
 
     <article class="card">
       <div class="status"><span class="dot"></span>live</div>
-      <h2>Lexgraph</h2>
+      <h2>SNTIQ Kerf</h2>
       <p class="tagline">German &amp; EU legislation as event-sourced git</p>
       <p class="desc">Laws as repositories, amendments as commits, court
         decisions linked to the norms they affect. Current corpus counts:
-        <a href="/lex/stats">/lex/stats</a>.</p>
+        <a href="/kerf/stats">/kerf/stats</a>.</p>
       <ul class="endpoints mono">
-        <li>/lex/acts</li>
-        <li>/lex/git</li>
-        <li>/lex/feed</li>
-        <li>/lex/decisions</li>
-        <li>/lex/search</li>
+        <li>/kerf/acts</li>
+        <li>/kerf/git</li>
+        <li>/kerf/feed</li>
+        <li>/kerf/decisions</li>
+        <li>/kerf/search</li>
       </ul>
       <div class="links">
-        <a href="/lex/docs">Interactive docs</a>
-        <a href="https://github.com/SNTIQ-Team/lexgraph">Dataset</a>
+        <a href="/kerf/docs">Interactive docs</a>
+        <a href="https://github.com/SNTIQ-Team/kerf">Dataset</a>
       </div>
     </article>
 
     <article class="card">
       <div class="status"><span class="dot"></span>live</div>
-      <h2>Briefcraft PDF</h2>
+      <h2>SNTIQ Chamfer PDF</h2>
       <p class="tagline">Stateless DIN-5008 letter rendering</p>
       <p class="desc">Render a formal German letter from JSON — nothing is
         stored.</p>
       <ul class="endpoints mono">
-        <li>POST /pdf/letter</li>
+        <li>POST /chamfer/letter</li>
       </ul>
       <div class="links">
         <a href="/docs">Interactive docs</a>
@@ -275,7 +229,6 @@ INDEX_HTML = """<!doctype html>
   <footer>
     <span><a href="https://sntiq.com">SNTIQ n.e.V.</a></span>
     <span>Free for non-commercial use · rate-limited</span>
-    <span>Legacy <span class="mono">/v1/*</span> paths remain supported</span>
     <span><a href="mailto:contact@sntiq.com">contact@sntiq.com</a></span>
   </footer>
 </main>
@@ -287,7 +240,7 @@ server = FastAPI(
     title="SNTIQ Platform API",
     version="1.0",
     # platform-level docs describe only the composition root;
-    # each mounted service keeps its own /v1/docs
+    # each mounted service keeps its own /taper/docs
     docs_url="/docs",
     redoc_url=None,
 )
@@ -309,7 +262,7 @@ server.add_middleware(
 )
 
 
-def amtsgraph_counts() -> str:
+def taper_counts() -> str:
     """Counts rendered from the served dataset, never hard-coded."""
     try:
         conn = sqlite3.connect(DB_PATH)
@@ -342,8 +295,8 @@ def index(request: Request):
     # Content negotiation: browsers get the landing page, everything else
     # (curl, scripts, monitors) keeps getting the JSON service index.
     if "text/html" in request.headers.get("accept", ""):
-        return HTMLResponse(INDEX_HTML.replace("__AMTSGRAPH_COUNTS__",
-                                              amtsgraph_counts()))
+        return HTMLResponse(INDEX_HTML.replace("__TAPER_COUNTS__",
+                                              taper_counts()))
     return SERVICE_INDEX
 
 
@@ -367,26 +320,9 @@ def health():
         conn.close()
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(503, f"database unavailable: {exc}")
-    return {"status": "ok", "services": {"amtsgraph": "ok", "pdf": "ok"}}
+    return {"status": "ok", "services": {"taper": "ok", "chamfer": "ok"}}
 
 
-# ---- service routers (explicit routes BEFORE the /v1 mount) -------------
-
-server.include_router(pdf_router)
-
-# Read-aloud fallback for the web app. Canonical /tts/speak only — the
-# service never had a /v1 era, so no legacy alias exists.
 server.include_router(tts_router)
-
-# Canonical service-scoped alias for the PDF renderer: POST /pdf/letter.
-# The /v1/pdf/letter route above stays for backward compatibility.
-server.post("/pdf/letter", include_in_schema=False)(pdf_letter)
-
-
-# ---- mounted services ----------------------------------------------------
-# Canonical, service-scoped path first; the historical /v1 mount stays so
-# that existing clients (and published docs) never break. Both serve the
-# same app instance — /amtsgraph/docs and /v1/docs are equally live.
-
-server.mount("/amtsgraph", amtsgraph)
-server.mount("/v1", amtsgraph)
+server.include_router(chamfer_router)
+server.mount("/taper", taper)

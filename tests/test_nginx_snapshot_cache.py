@@ -47,7 +47,7 @@ class SnapshotCacheTest(unittest.TestCase):
         class Source(http.server.BaseHTTPRequestHandler):
             def do_GET(self):
                 state['requests'] += 1
-                requested = self.headers.get('If-Lexgraph-Snapshot')
+                requested = self.headers.get('If-Kerf-Snapshot')
                 status = 409 if requested and requested != state['snapshot'] else 200
                 body = json.dumps({'status': 'stale_snapshot' if status == 409 else 'ok',
                                    'snapshot': state['snapshot']}).encode()
@@ -55,7 +55,7 @@ class SnapshotCacheTest(unittest.TestCase):
                 self.send_header('Content-Type', 'application/json')
                 self.send_header('Content-Length', str(len(body)))
                 self.send_header('Cache-Control', 'public, max-age=3600')
-                self.send_header('X-Lexgraph-Snapshot', state['snapshot'])
+                self.send_header('X-Kerf-Snapshot', state['snapshot'])
                 self.end_headers()
                 self.wfile.write(body)
 
@@ -68,12 +68,12 @@ class SnapshotCacheTest(unittest.TestCase):
         self.addCleanup(self.source.server_close)
         self.addCleanup(self.source.shutdown)
         config = (Path(__file__).resolve().parents[1] / 'deploy/nginx-api.conf').read_text()
-        # Reuse production maps/cache directives and the exact /lex location;
+        # Reuse production maps/cache directives and the exact /kerf location;
         # only isolate paths, ports, cache size, timeouts and diagnostic header.
         prefix = config[:config.index('\nserver {')]
         prefix = re.sub(r'proxy_cache_path[^;]+;',
                         f'proxy_cache_path {root}/cache levels=1:2 keys_zone=sntiq_cache:1m max_size=2m;', prefix)
-        block = location_block(config, '/lex/')
+        block = location_block(config, '/kerf/')
         block = block.replace('http://127.0.0.1:8002/', f'http://127.0.0.1:{self.source.server_port}/')
         block = block.replace('proxy_read_timeout 30s;', 'proxy_read_timeout 1s; proxy_connect_timeout 1s;')
         block = block[:-1] + 'add_header X-Test-Cache $upstream_cache_status always;\n}'
@@ -108,10 +108,10 @@ class SnapshotCacheTest(unittest.TestCase):
     def get(self, pin=None, origin=None):
         headers = {}
         if pin is not None:
-            headers['If-Lexgraph-Snapshot'] = pin
+            headers['If-Kerf-Snapshot'] = pin
         if origin:
             headers['Origin'] = origin
-        req = urllib.request.Request(f'http://127.0.0.1:{self.port}/lex/acts/synthetic/markdown?norm=1', headers=headers)
+        req = urllib.request.Request(f'http://127.0.0.1:{self.port}/kerf/acts/synthetic/markdown?norm=1', headers=headers)
         try:
             response = urllib.request.urlopen(req, timeout=4)
         except urllib.error.HTTPError as error:

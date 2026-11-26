@@ -1,4 +1,4 @@
-"""Synthetic Amtsgraph store built from the real schema (no real assertions).
+"""Synthetic Taper store built from the real schema (no real assertions).
 
 Everything here is invented: Land 99, PLZ 12345/12346, XJustiz codes with the
 unused prefix Q. The fixture deliberately contains the collisions and scoped
