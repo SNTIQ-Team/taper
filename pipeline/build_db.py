@@ -69,8 +69,10 @@ def now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
-BA_REGISTER_URL = ("https://statistik.arbeitsagentur.de/ Gebietsstruktur "
-                   "Grundsicherungstraeger")
+BA_REGISTER_URL = (
+    "https://statistik.arbeitsagentur.de/DE/Navigation/Grundlagen/"
+    "Klassifikationen/Regionale-Gliederungen/Gebietsstruktur-Traeger-Grundsicherung-Nav.html"
+)
 
 
 def insert_competence(db: sqlite3.Connection, authority_id: int, kind: str,
@@ -95,6 +97,38 @@ def insert_competence(db: sqlite3.Connection, authority_id: int, kind: str,
 
 
 # ----------------------------------------------------------------- loaders
+
+def reconcile_hanau(db: sqlite3.Connection, municipalities: dict[str, dict]) -> None:
+    """Reconcile the 2026 district change when the postal and statistical registers differ.
+
+    Hessisches Statistisches Landesamt, Schlüsselverzeichnis Januar 2026:
+    https://statistik.hessen.de/sites/statistik.hessen.de/files/2026-01/verz-2_26-01.pdf
+    """
+    former, current = "06435014", "06415000"
+    official = municipalities.get(current)
+    if not official or former in municipalities:
+        return
+    old = db.execute("SELECT name_norm FROM gemeinde WHERE ags=?", (former,)).fetchone()
+    if not old:
+        return
+    if old[0] != "hanau" or normalize_name(official["name"]) != "hanau":
+        raise ValueError("municipal register identity conflict for Hanau")
+    db.execute(
+        """INSERT INTO kreis (ags, land_code, name, kind, regierungsbezirk)
+           SELECT ?, land_code, ?, 'Kreisfreie Stadt', regierungsbezirk
+           FROM kreis WHERE ags='06435' ON CONFLICT(ags) DO NOTHING""",
+        (current[:5], official["name"]))
+    db.execute(
+        """INSERT INTO gemeinde (ags, ars, kreis_ags, name, name_simple, name_norm, kind, population)
+           SELECT ?, ?, ?, ?, name_simple, name_norm, kind, population
+           FROM gemeinde WHERE ags=? ON CONFLICT(ags) DO NOTHING""",
+        (current, official["ars"], current[:5], official["name"], former))
+    db.execute("INSERT OR IGNORE INTO gemeinde_plz SELECT ?, plz FROM gemeinde_plz WHERE ags=?",
+               (current, former))
+    db.execute("UPDATE jz_place SET gemeinde_ags=? WHERE gemeinde_ags=?", (current, former))
+    db.execute("DELETE FROM gemeinde_plz WHERE ags=?", (former,))
+    db.execute("DELETE FROM gemeinde WHERE ags=?", (former,))
+
 
 def load_geo(db: sqlite3.Connection, snap: Path):
     for s in read_jsonl(snap / "federal_states.jsonl"):
@@ -145,7 +179,9 @@ def load_geo(db: sqlite3.Connection, snap: Path):
     dsnap = latest_snapshot("destatis")
     n_ars = 0
     if dsnap and (dsnap / "gemeinden.jsonl").exists():
-        for g in read_jsonl(dsnap / "gemeinden.jsonl"):
+        official = {g["ags"]: g for g in read_jsonl(dsnap / "gemeinden.jsonl")}
+        reconcile_hanau(db, official)
+        for g in official.values():
             cur = db.execute("UPDATE gemeinde SET ars=? WHERE ags=?",
                              (g["ars"], g["ags"]))
             n_ars += cur.rowcount
@@ -1357,6 +1393,10 @@ def main() -> int:
             print(f"[{source}] loading {snap}")
             loader(db, snap)
             snaps[source] = snap.name
+            if source == "openplz":
+                destatis = latest_snapshot("destatis")
+                if destatis and (destatis / "gemeinden.jsonl").is_file():
+                    snaps["destatis"] = destatis.name
         else:
             print(f"[{source}] no snapshot — skipped")
 
