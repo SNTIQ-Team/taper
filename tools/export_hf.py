@@ -12,7 +12,7 @@ from __future__ import annotations
 import argparse
 import json
 import sqlite3
-from datetime import date
+from contextlib import closing
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -82,11 +82,11 @@ def export(out: Path) -> dict[str, int]:
 
 CARD = """---
 license: other
-license_name: sntiq-and-source-licenses
+license_name: mixed-source-licenses
 license_link: https://github.com/SNTIQ-Team/taper/blob/main/LICENSING.md
 language:
   - de
-pretty_name: "SNTIQ Taper — German authority and EU institution graph"
+pretty_name: SNTIQ Taper
 tags:
   - germany
   - european-union
@@ -104,16 +104,9 @@ configs:
 
 # SNTIQ Taper
 
-**The open, validated graph of German public authorities and a curated,
-source-backed EU institutional layer — who is competent, where, and for
-what, without flattening distinct legal relations into a fake hierarchy.**
+Taper links German localities to the authorities responsible for a matter and to the courts that hear an appeal. A separate collection records the roles and relationships of selected EU institutions. Each record identifies its source.
 
-Built {today} from official registers (Orts- und Gerichtsverzeichnis,
-PVOG/FITKO, Bundesagentur für Arbeit, Destatis, BayernPortal, OpenPLZ,
-xRepository), plus EU primary law and official institution pages for the
-reviewed 11-node EU overlay. Every build passes a validation gate (coverage,
-collision, contiguity, benchmark and EU cross-hierarchy checks) before
-release; every record carries provenance (source, URL, fetch timestamp).
+This snapshot was built on **{built_date}**. It includes German registers, municipal assignments and a reviewed set of 11 EU institutions. Use the locality identifier when a postal code crosses court districts. [Source code](https://github.com/SNTIQ-Team/taper) · [Live API](https://api.sntiq.com/taper/docs)
 
 ## Files
 
@@ -178,10 +171,11 @@ Empty fields are deliberate, not dirty data:
   competence rules exist that no dataset can capture.
 - Department-level depth covers Bavaria's 96 Kreisverwaltungsbehörden
   (pilot); other Länder resolve at authority level.
-- SNTIQ licenses its original annotations and database contributions under CC BY 4.0.
-  The export includes OpenPLZ geography (ODbL 1.0, including data from Destatis and
-  OpenStreetMap contributors) and records subject to their source terms.
-  [Licensing and attribution](https://github.com/SNTIQ-Team/taper/blob/main/LICENSING.md).
+## Reuse
+
+SNTIQ licenses its own separable annotations and database contributions under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Its software uses [Apache-2.0](https://github.com/SNTIQ-Team/taper/blob/main/LICENSE). Both grants permit commercial use.
+
+Locality and postal-code data from OpenPLZ carry ODbL 1.0 and the associated attribution and share-alike conditions. Other registers retain their source-specific terms. Keep the provenance attached to the rows you reuse. [OpenPLZ licensing](https://www.openplzapi.org/en/faq/) · [Source and license guide](https://github.com/SNTIQ-Team/taper/blob/main/LICENSING.md)
 
 ## Citation
 
@@ -207,6 +201,8 @@ def main() -> int:
     out = Path(args.out)
 
     counts = export(out)
+    with closing(sqlite3.connect(DB.resolve().as_uri() + "?mode=ro", uri=True)) as db:
+        built_date = db.execute("SELECT value FROM build_info WHERE key='built_at'").fetchone()[0][:10]
 
     desc = {
         "authorities": "all authorities with contacts, provenance, external IDs",
@@ -225,7 +221,7 @@ def main() -> int:
         f"  - config_name: {stem}\n    data_files: {stem}.jsonl"
         for stem in TABLES)
     (out / "README.md").write_text(
-        CARD.format(today=date.today().isoformat(),
+        CARD.format(built_date=built_date,
                     rows_table=rows_table, configs=configs),
         encoding="utf-8")
     print(f"dataset card -> {out / 'README.md'}")
