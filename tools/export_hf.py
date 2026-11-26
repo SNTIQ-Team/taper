@@ -104,7 +104,9 @@ configs:
 
 # SNTIQ Taper
 
-Taper links German localities to the authorities responsible for a matter and to the courts that hear an appeal. A separate collection records the roles and relationships of selected EU institutions. Each record identifies its source.
+[Taper web tool](https://sntiq.com/dt/taper) · Find German authorities and courts for a place and matter, with sources and appeal routes where available.
+
+This dataset links German localities to the authorities responsible for a matter and to the courts that hear an appeal. A separate collection records the roles and relationships of selected EU institutions. Each record identifies its source.
 
 This snapshot was built on **{built_date}**. It includes German registers, municipal assignments and a reviewed set of 11 EU institutions. Use the locality identifier when a postal code crosses court districts. [Source code](https://github.com/SNTIQ-Team/taper) · [Live API](https://api.sntiq.com/taper/docs)
 
@@ -125,9 +127,8 @@ This snapshot was built on **{built_date}**. It includes German registers, munic
    `municipalities`, then filter `competences` by `kind` and area
    (`gemeinde` = 8-digit AGS, `kreis` = 5-digit prefix, `land` = 2-digit).
    `rank 0` = the office to apply at; `rank 1` = supervisory body.
-3. **Always join `caveats`** for the scope you resolved — they flag
-   genuine ambiguities and register gaps. For legal use, an honest
-   warning beats a confident wrong answer.
+3. Join `caveats` for the resolved scope so each answer includes known
+   ambiguities and gaps in the registers.
 4. The organisational web (Bavaria): traverse `edges` with
    `relation='parent'` for department hierarchies, `'supervision'` for
    oversight, `'appeal'` for derived court appeal routes.

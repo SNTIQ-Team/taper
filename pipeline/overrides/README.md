@@ -10,7 +10,7 @@ Each YAML file records one correction and its source. The build applies the file
 | `add_authority` | Add an authority with the supplied contact details and competence assignments. |
 | `remove_competence` | Remove an assignment for a specific kind of work. Optional level and area filters narrow the match. |
 
-Use an external identifier when it identifies one record. An exact active authority name can also be matched, optionally with its kind. The build reports unmatched corrections and skips them. [Berlin immigration office example](2026-06-11-berlin-lea.yaml)
+Match a record by its unique external identifier or by its exact active authority name and optional kind. The build logs each unmatched correction and continues with the next file. [Berlin immigration office example](2026-06-11-berlin-lea.yaml)
 
 ## A correction in context
 

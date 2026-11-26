@@ -133,4 +133,4 @@ curl 'https://api.sntiq.com/taper/resolve/court?plz=10115&ortk=BERLIN&matter=ziv
 curl 'https://api.sntiq.com/taper/resolve/authority?ags=09177117&kind=asylblg_behoerde'
 ```
 
-For a local query, use the same routes under `http://127.0.0.1:8001/taper` after starting `api.server:server` with a current database. [API contract](../docs/API.md)
+To query a local build, run `uvicorn api.server:server --port 8001` with a current database and send the same requests to `http://127.0.0.1:8001/taper`. [API contract](../docs/API.md)

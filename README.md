@@ -1,6 +1,6 @@
 # SNTIQ Taper
 
-Which court handles a civil claim in Berlin? Which office takes a benefit application in Erding? Taper looks up the place, the matter and the authority in German public registers. Each answer includes its source and the dataset snapshot used for the lookup.
+Find German authorities and courts for a place and matter, with sources and appeal routes where available. Each answer includes its source and the dataset snapshot used for the lookup.
 
 ## Look up a court
 
@@ -39,7 +39,7 @@ Each release also contains a validation report, coverage counts and the dates of
 
 ## Build from sources
 
-The pipeline keeps dated snapshots of each source. It applies reviewed corrections during the database build and validates the result before replacing `data/atlas.db`. The core harvest covers postal geography, the court register, PVOG and the federal Jobcenter register. Further source loaders cover Bavarian departments, XJustiz identities and the EU institutions. [Source registry](pipeline/sources.yaml) · [Source notes](docs/SOURCES.md) · [Correction files](pipeline/overrides/README.md)
+Run `bash pipeline/run_full.sh` to fetch dated source snapshots. The build applies reviewed YAML corrections from `pipeline/overrides/` and validates the SQLite database before replacing `data/atlas.db`. The core harvest covers postal geography, the court register, PVOG and the federal Jobcenter register. Further source loaders cover Bavarian departments, XJustiz identities and the EU institutions. [Source registry](pipeline/sources.yaml) · [Source notes](docs/SOURCES.md) · [Correction files](pipeline/overrides/README.md)
 
 ```sh
 python3 -m venv .venv

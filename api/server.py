@@ -177,7 +177,7 @@ INDEX_HTML = """<!doctype html>
     <article class="card">
       <div class="status"><span class="dot"></span>live</div>
       <h2>SNTIQ Taper</h2>
-      <p class="tagline">German authorities, court competences &amp; EU institutions</p>
+      <p class="tagline">Find German authorities and courts for a place and matter, with sources and appeal routes where available.</p>
       <p class="desc">__TAPER_COUNTS__</p>
       <ul class="endpoints mono">
         <li>/taper/resolve/court</li>
@@ -194,7 +194,7 @@ INDEX_HTML = """<!doctype html>
     <article class="card">
       <div class="status"><span class="dot"></span>live</div>
       <h2>SNTIQ Kerf</h2>
-      <p class="tagline">German &amp; EU legislation as event-sourced git</p>
+      <p class="tagline">Read German and EU law, compare available versions, and trace amendments and court citations to official sources.</p>
       <p class="desc">Laws as repositories, amendments as commits, court
         decisions linked to the norms they affect. Current corpus counts:
         <a href="/kerf/stats">/kerf/stats</a>.</p>
