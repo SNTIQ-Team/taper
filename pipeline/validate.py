@@ -40,6 +40,15 @@ def check(db: sqlite3.Connection) -> list[str]:
         if n:
             errors.append(f"geo: {n} inhabited Gemeinden without any PLZ")
 
+    if has_rows(db, "gemeinde"):
+        missing_districts = q(db, """
+            SELECT DISTINCT c.area FROM competence c
+            WHERE c.source='ba' AND c.kind='jobcenter' AND c.level='kreis'
+              AND NOT EXISTS (SELECT 1 FROM gemeinde g WHERE g.kreis_ags=c.area)
+            ORDER BY c.area""")
+        if missing_districts:
+            errors.append(f"geo: BA Jobcenter districts without a municipality: {missing_districts}")
+
     # ---- court chains ---------------------------------------------------
     if justiz_loaded:
         # every place x core matter resolves to a chain with a 1st instance.
