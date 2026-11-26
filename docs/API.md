@@ -762,23 +762,6 @@ curl -s 'http://127.0.0.1:8400/api/court?plz=10115&ortk=BERLIN&matter=zivil'
 
 ## Licensing
 
-Taper is **dual-licensed by audience** (see
-[`LICENSING.md`](../LICENSING.md)):
+SNTIQ software is available under Apache 2.0. SNTIQ's annotations and original documentation use CC BY 4.0. Imported data retains its source terms, including the ODbL for OpenPLZ geography. [Licensing and attribution](../LICENSING.md)
 
-- **Non-commercial** (individuals, human-rights / non-profit, research,
-  journalism, education): **code** under
-  [Apache-2.0](../LICENSE-APACHE-2.0); **database contents, documentation and
-  media** under [CC BY-NC-SA 4.0](../LICENSE-CC-BY-NC-SA-4.0).
-- **Commercial / corporate / governmental**: code and media alike under the
-  [SNTIQ-CM License v1.0](../LICENSE-SNTIQ-CM) — free written permission
-  required, with a non-harm covenant, attribution, and case-by-case
-  reciprocity.
-
-Attribution string: `Contains material from Taper by SNTIQ —
-https://github.com/SNTIQ-Team/taper`.
-
-The dataset is general information, **not legal advice**. Underlying records
-originate from official German public registers whose own terms govern the raw
-records — see [`docs/SOURCES.md`](SOURCES.md).
-
-The public API powers **[sntiq.com/dt/taper](https://sntiq.com/dt/taper)**.
+The public API serves the [Taper viewer](https://sntiq.com/dt/taper).

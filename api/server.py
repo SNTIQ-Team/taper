@@ -228,7 +228,7 @@ INDEX_HTML = """<!doctype html>
 
   <footer>
     <span><a href="https://sntiq.com">SNTIQ n.e.V.</a></span>
-    <span>Free for non-commercial use · rate-limited</span>
+    <span>Public API · rate-limited</span>
     <span><a href="mailto:contact@sntiq.com">contact@sntiq.com</a></span>
   </footer>
 </main>

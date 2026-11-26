@@ -82,7 +82,7 @@ def export(out: Path) -> dict[str, int]:
 
 CARD = """---
 license: other
-license_name: sntiq-dual-by-audience
+license_name: sntiq-and-source-licenses
 license_link: https://github.com/SNTIQ-Team/taper/blob/main/LICENSING.md
 language:
   - de
@@ -178,9 +178,10 @@ Empty fields are deliberate, not dirty data:
   competence rules exist that no dataset can capture.
 - Department-level depth covers Bavaria's 96 Kreisverwaltungsbehörden
   (pilot); other Länder resolve at authority level.
-- Underlying records originate from official public registers; their
-  respective terms govern redistribution (see the source registry in the
-  GitHub repository). Dual-licensed by audience: non-commercial / human-rights / research use under Apache-2.0 (code) + CC BY-NC-SA 4.0 (data); commercial, corporate and governmental use under the SNTIQ-CM License v1.0 (free written permission, non-harm covenant, attribution, reciprocity) — see LICENSING.md in the GitHub repository.
+- SNTIQ licenses its original annotations and database contributions under CC BY 4.0.
+  The export includes OpenPLZ geography (ODbL 1.0, including data from Destatis and
+  OpenStreetMap contributors) and records subject to their source terms.
+  [Licensing and attribution](https://github.com/SNTIQ-Team/taper/blob/main/LICENSING.md).
 
 ## Citation
 

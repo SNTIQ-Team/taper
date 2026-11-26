@@ -1,249 +1,56 @@
-# ⚖️ SNTIQ Taper
+# SNTIQ Taper
 
-**The open, validated graph of German public authorities — who is competent,
-where, and for what.**
+Which court handles a civil claim in Berlin? Which office takes a benefit application in Erding? Taper looks up the place, the matter and the authority in German public registers. Each answer includes its source and the dataset snapshot used for the lookup.
 
-Taper answers the question every administrative or court procedure in
-Germany starts with: *which authority is responsible for my matter at my
-location?* It covers:
+## Look up a court
 
-- **Courts** — the exact instance chain (first instance → appeal → highest
-  court, plus prosecution offices) for **14 legal matters** at every one of
-  **14,057 places**: civil claims, family law, dunning procedures
-  (Mahnverfahren), both insolvency types, land register, probate,
-  guardianship, commercial registers, labour, social and administrative
-  law. With filing addresses, XJustiz IDs and electronic-filing (ERV)
-  status.
-- **Agencies** — Ausländerbehörden, Jobcenter (with gE/zkT legal form from
-  the official BA register), Sozialämter, AsylbLG benefit offices,
-  Bürgerämter, Standesämter, Gewerbeämter, Jugendämter, Wohngeldstellen —
-  resolved per municipality (AGS), with supervisory bodies ranked
-  separately from the offices you actually apply at.
-- **The organisational web** *(Bavaria, pilot)* — every Abteilung,
-  Fachbereich and Sachgebiet of all 96 Kreisverwaltungsbehörden as a
-  navigable parent/child graph, down to department-level contacts
-  (`asyl@landratsamt-roth.de` instead of a generic switchboard).
-- **EU institutional layer** — the seven institutions named in Article 13
-  TEU, both courts of the CJEU, the European Ombudsman and the EDPS.  Its
-  31 relations distinguish composition, appeal, judicial review,
-  co-legislation, reporting, financial audit, maladministration review and
-  data-protection oversight.  It contains **no EU→German blanket-supervision
-  edge**; every relation carries an official source and a limiting note.
-  All 11 nodes include an officially sourced postal address and telephone;
-  e-mail and fax are present only where the institution itself publishes a
-  general contact (the CURIA court registries are kept distinct).
+For postal code `10115` in Berlin, the register lists Amtsgericht Mitte for ordinary civil claims. For a payment order (`Mahnverfahren`) at the same address, it lists Amtsgericht Wedding, the central payment order court for Berlin and Brandenburg.
 
-| | |
-|---|---|
-| Active authorities | **19,238** (including 11 curated EU nodes) |
-| Court-chain links (place × matter × instance) | **338,873** |
-| Competence assignments | **77,125** |
-| Organisational parent edges (Bavaria) | **7,195** |
-| Derived appeal edges (cross-checked) | **1,066** |
-| Municipalities / postal codes covered | **10,950 / 8,205** |
-| Honest-gap caveats served with answers | **5,385** |
-
-## Why this dataset is different
-
-**1. No grouping assumptions.** German court competence resolves per
-*(postal code, locality, matter)* — one rural postal code can contain nine
-villages in nine different court districts, and Berlin's 10115 and 12555
-share every structural register key yet belong to different Amtsgerichte.
-Taper queried the official register **once per place and matter**
-(196,798 combinations) instead of extrapolating.
-
-**2. A validation gate, not a scraper dump.** Every build must pass
-coverage, collision, contiguity and cross-check tests before it can
-replace the previous database. Builds that fail stay on disk for
-inspection and never go live. The gate caught real bugs during
-development — including a grouping assumption that nationwide
-spot-verification disproved (20/60 mismatches) and was removed entirely.
-
-**3. Honesty over confidence.** When the official source itself is
-ambiguous (AsylbLG practice varies by district) or empty (0.36 % of
-place×matter combinations), the answer carries an explicit `caveat`
-instead of a silent guess or a silent 404. Supervisory bodies
-(Regierungen, ministries) are ranked `1` and never served as *the* office
-to apply at.
-
-**4. Full provenance.** Every authority row records its source, source
-URL and fetch timestamp. All XJustiz IDs in the dataset verify against
-the official GDS.Gerichte codelist (0 outliers).
-
-## Data model
-
-```
-GEO plane             AUTHORITY plane                         COURT TRUTH
-─────────             ───────────────                         ───────────
-land                  authority                               court_chain
- └─ kreis               typed · provenance                    (plz × ortk × matter ×
-     └─ gemeinde        validity window                        position → authority)
-         ▲    ▲           ▲           ▲                       exact harvested
-         │    │           │           │                       instance chains,
-gemeinde_plz  │       competence   authority_edge             served verbatim —
-   (M:N)      │       kind × area  parent / appeal /          the edge graph is
-         │    │         × rank     typed + sourced legal       derived and
-        plz   │                    (δ directionality          cross-checked,
-         │    │                     + trust)                  never the answer
-     jz_place ┘
-(official court       matter — legal-matter taxonomy
- resolution register) caveat — warnings the API must surface
+```sh
+curl 'https://api.sntiq.com/taper/resolve/court?plz=10115&ortk=BERLIN&matter=zivil'
+curl 'https://api.sntiq.com/taper/resolve/court?plz=10115&ortk=BERLIN&matter=mahn'
 ```
 
-Key invariants (see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)):
+A court answer includes the chain of instances, the role of each entry and its filing address. Some postal codes span several court districts. When the locality is ambiguous, the resolver returns candidates with stable place identifiers. Public reads require no API key. [API explorer](https://api.sntiq.com/taper/docs) · [SQL, Python and HTTP examples](examples/README.md)
 
-- Courts are answered **verbatim from harvested chains**; the edge graph
-  is derived and cross-checked, never the primary answer.
-- Authority identity is **(XJustiz-ID, name)** — departments share their
-  parent court's ID at different filing addresses (Insolvenzgericht!),
-  and homonym courts (two Amtsgerichte Fürth) share a name with
-  different IDs. Neither may be merged.
-- `competence.kind` lives on the relation, not the authority — one
-  Landratsamt legitimately wears the ABH, Sozialamt and AsylbLG hats.
-- `competence.rank`: `0` = the office to apply at, `1` = übergeordnete /
-  supervisory body (also linked via `authority_edge: supervision`).
-- EU graph edges are not a general chain of command.  `judicial_review`,
-  `maladministration_review`, `financial_audit` and `sectoral_oversight`
-  mean only the procedure/domain stated in their `note` and `source_url`.
-  CJEU rulings can bind German courts or the Member State in treaty-defined
-  preliminary-ruling and infringement procedures; that effect is not an
-  appeal from a German judgment, so Taper does not encode a blanket
-  CJEU→German-court supervision edge.
+## Coverage
 
-## Quickstart
+| Records | What they describe |
+| --- | --- |
+| Courts | Register assignments by postal code, locality and legal matter. Court identifiers use the XJustiz code list. |
+| Administrative offices | Municipal and district assignments for offices including Jobcenter, immigration offices and social welfare offices. Rank 0 identifies the filing office. Higher ranks identify supervisory offices. |
+| Bavarian departments | Organisational links and contacts down to department level where the BayernPortal publishes them. |
+| EU institutions | Eleven institutions and bodies, with sourced relations for judicial review, appeals, financial audit and other defined procedures. Each relation records its scope. |
 
-The database is **not committed to git** — download it from the latest
-[GitHub Release](https://github.com/SNTIQ-Team/taper/releases)
-(`atlas.sqlite` + SHA-256 + validation report) or take the JSONL export
-from the [Hugging Face dataset](https://huggingface.co/datasets/SNTIQ-Team/taper).
+The public resolver answers for its current register snapshot. `GET /taper/version` identifies that snapshot and its source dates. `GET /taper/capabilities` lists supported operations and arguments. Warnings in a result can apply to a place, an authority, a matter or an individual assignment. The combined research endpoint pairs a Taper resolution with a legal text or search from SNTIQ Kerf. [API contract](docs/API.md)
 
-```bash
-pip install -r requirements.txt
+## Use the SQLite release
 
-# get the database (verify the checksum!)
-gh release download -p 'atlas.sqlite*' -D data/
-sha256sum -c data/atlas.sqlite.sha256 && mv data/atlas.sqlite data/atlas.db
+From a checkout of this repository, download the database and its checksum. The checksum file names `atlas.sqlite` relative to the download directory.
 
-# explore
-python3 tools/browser.py            # hierarchical browser + search on :8400
-sqlite3 data/atlas.db               # or query directly — see examples/
-uvicorn api.main:app                # API: /resolve/court, /stats, /health …
-
-# or rebuild from sources (full Germany, ~4–6 h polite crawl, resumable)
-cd pipeline && ./run_full.sh
-python3 monitor.py                  # live btop-style harvest dashboard
+```sh
+mkdir -p data
+gh release download --repo SNTIQ-Team/taper --pattern 'atlas.sqlite*' --dir data
+(cd data && sha256sum -c atlas.sqlite.sha256)
+sqlite3 -readonly data/atlas.sqlite
 ```
 
-Every release ships `validation-report.json`, `coverage.md` and
-`sources-lock.yaml` — the machine-readable trust layer: what was checked,
-what passed, which source snapshots the build was made from, and where
-the known gaps are.
+Each release also contains a validation report, coverage counts and the dates of its source snapshots. The Hugging Face dataset publishes JSONL tables. [GitHub releases](https://github.com/SNTIQ-Team/taper/releases) · [Hugging Face dataset](https://huggingface.co/datasets/SNTIQ-Team/taper)
 
-Worked queries (SQL, Python, HTTP) live in [examples/](examples/).
+## Build from sources
 
-## Sources & refresh
+The pipeline keeps dated snapshots of each source. It applies reviewed corrections during the database build and validates the result before replacing `data/atlas.db`. The core harvest covers postal geography, the court register, PVOG and the federal Jobcenter register. Further source loaders cover Bavarian departments, XJustiz identities and the EU institutions. [Source registry](pipeline/sources.yaml) · [Source notes](docs/SOURCES.md) · [Correction files](pipeline/overrides/README.md)
 
-No single upstream source exists; every source is registered in
-[pipeline/sources.yaml](pipeline/sources.yaml) with its own resumable
-fetcher and cadence. Highlights (full list and verified endpoints in
-[docs/SOURCES.md](docs/SOURCES.md)):
-
-| Source | Provides | Cadence |
-|---|---|---|
-| Orts- und Gerichtsverzeichnis (justizadressen.nrw.de) | court chains per place × matter | monthly |
-| PVOG Suchdienst (FITKO) | agencies, competences, contacts, hours | weekly |
-| BA Gebietsstruktur SGB II | all 404 Jobcenter incl. gE/zkT legal form | monthly |
-| BayernPortal organigrams | Bavaria's departmental web (7,217 units) | monthly |
-| Destatis Gemeindeverzeichnis | AGS/ARS municipal spine | quarterly |
-| OpenPLZ | postal code ↔ municipality (M:N) | quarterly |
-| xRepository (GDS.Gerichte, ABH-Kennung) | identity benchmarks | on release |
-
-Pipeline discipline: `fetch → immutable snapshot → build → validate →
-atomic swap`. Manual corrections live exclusively in
-[pipeline/overrides/](pipeline/overrides/README.md) as reviewable,
-expiring YAML patches that survive every rebuild.
-
-## Limitations — read before relying on it
-
-- **This is general information, not legal advice.** Competence rules
-  (örtliche/sachliche Zuständigkeit) have statutory exceptions the
-  dataset cannot capture; always confirm before filing anything with a
-  deadline. Caveat rows mark known ambiguities — display them.
-- Department-level depth currently covers **Bavaria's 96
-  Kreisverwaltungsbehörden**; other Länder resolve to the authority
-  level. Metropolitan cities (München, Nürnberg) maintain their own
-  portals and appear at the depth the Land portal publishes.
-- AsylbLG coverage reflects what Land editorial systems publish —
-  partial by nature, marked with caveats.
-- Data was harvested from official public registers; their respective
-  terms apply to the underlying records (see
-  [docs/SOURCES.md](docs/SOURCES.md)).
-
-## License
-
-Dual-licensed **by audience** — see [LICENSING.md](LICENSING.md):
-
-- **Non-commercial** (individuals, NGOs, human-rights work, research,
-  journalism, education): code under
-  [Apache-2.0](LICENSE-APACHE-2.0), data/docs/media under
-  [CC BY-NC-SA 4.0](LICENSE-CC-BY-NC-SA-4.0).
-- **Commercial / corporate / governmental**: everything under the
-  [SNTIQ-CM License v1.0](LICENSE-SNTIQ-CM) — free written permission
-  with a non-harm covenant, attribution and case-by-case reciprocity
-  (contribution or human-rights / open-source donation).
-
-## Repository layout
-
-| Path | Purpose |
-|---|---|
-| `data/atlas.db` | the built SQLite database (single file, FTS5 search) |
-| `pipeline/` | fetchers, validation gate, build, overrides, monitor |
-| `api/` | FastAPI resolution service (matter-aware) |
-| `tools/browser.py` | zero-dependency hierarchical data browser |
-| `tools/export_hf.py` | Hugging Face dataset export (JSONL per table) |
-| `docs/` | architecture, source registry, design decisions |
-| `examples/` | runnable SQL / Python / HTTP examples |
-| `db/schema.sql` | the schema, heavily annotated |
-
-## Citation
-
-```bibtex
-@misc{taper2026,
-  title   = {Taper: an open validated graph of German public
-             authorities, court competences and organisational structure},
-  author  = {Glushkov, David and {SNTIQ}},
-  year    = {2026},
-  url     = {https://github.com/SNTIQ-Team/taper}
-}
+```sh
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install -r requirements.txt
+bash pipeline/run_full.sh
+uvicorn api.server:server --host 127.0.0.1 --port 8001
 ```
 
-Built by [SNTIQ](https://sntiq.com/) — infrastructure for navigating
-large bureaucratic systems. 50+ supported proceedings, documented
-administrative-practice changes in German municipalities.
+The local resolver listens under `http://127.0.0.1:8001/taper`. The SQL schema describes places, authority assignments, court chains and their evidence. [Database schema](db/schema.sql) · [Architecture](docs/ARCHITECTURE.md)
 
-### Resolver evidence contract
+## Reuse and citation
 
-`GET /capabilities` declares current-register resolution (`current_only`).
-Historical arguments (`at`, `as_of`, `valid_at`, `known_at`, …) return HTTP 400
-`unsupported_temporal_request`; unknown or repeated arguments return HTTP 400
-`invalid_argument` with their names. `/resolve/place` returns stable place ids
-(`place:jz:<PLZ>:<ORTK>`, `place:ags:<AGS>`) or explicit ambiguity, and the
-competence operations accept them; a display-name filter never authorizes
-selecting the first row. Answers use one evidence envelope (typed `status`,
-`request_scope`, `snapshot_id`, `searched`, `evidence`, `warnings`, `total`),
-aggregate caveats from place, municipality, district, Land, matter, authority,
-court and assignment scopes (expired ones are listed as inactive), and carry
-`assignments` with relation-level evidence: a register observation, a curated
-review and a statutory assignment are distinct evidence kinds. Courts are
-first-class nodes with stable ids `court:de:<XJustiz-ID>` mapped to official
-name and ECLI code (`/courts/mapping`). See docs/API.md, "Evidence envelope".
-
-### One research interface
-
-`GET /research?q=AsylbLG&ags=09177117&kind=asylblg_behoerde` combines the existing
-Kerf legal search and Taper assignment resolver. On production the path
-is `/taper/research`. Each component retains source metadata, ambiguity and failures;
-no new corpus copy or speculative statutory competence edge is created. Exact
-historical text uses `act_id`, optional `norm`, `at` and timezone-aware `known_at`.
-Historical authority resolution is explicitly unsupported. The pure `research`
-operation is the intended boundary for a later MCP/Skill adapter.
+SNTIQ licenses its code under Apache 2.0 and its original documentation and annotations under CC BY 4.0. Both allow commercial use. Imported register records, OpenPLZ geography and bundled fonts have their own terms. [Licensing and source attribution](LICENSING.md) · [Citation](CITATION.cff)

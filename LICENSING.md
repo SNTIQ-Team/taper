@@ -1,46 +1,24 @@
-# Licensing
+# Reusing SNTIQ Taper
 
-Taper is dual-licensed **by audience**. Three license texts apply;
-which ones govern your use depends on who you are.
+SNTIQ grants the same terms to individuals, companies and public bodies. Commercial use is welcome.
 
-## Non-commercial track
+| Material | Terms |
+| --- | --- |
+| SNTIQ software, including the Taper API, Chamfer letter renderer, pipeline, SQL schema and code examples | [Apache License 2.0](https://github.com/SNTIQ-Team/taper/blob/main/LICENSE) |
+| SNTIQ documentation, original annotations and corrections, and SNTIQ's own rights in the selection and arrangement of records | [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/) |
+| Records extracted from an external register, third-party software and fonts | The applicable source or component terms. The table below identifies the principal sources. |
 
-For individuals, human-rights and non-profit organizations, research,
-journalism and education:
+For SNTIQ material under CC BY, a credit can read “SNTIQ Taper, David Glushkov and SNTIQ, CC BY 4.0” with links to the project and license. Indicate any changes and retain attribution supplied with the material. [Project](https://github.com/SNTIQ-Team/taper) · [CC BY legal code](https://creativecommons.org/licenses/by/4.0/legalcode.en)
 
-| Scope | License |
-|---|---|
-| Code (pipeline, API, tools, schema) | [Apache License 2.0](LICENSE-APACHE-2.0) |
-| Database contents, documentation, media | [CC BY-NC-SA 4.0](LICENSE-CC-BY-NC-SA-4.0) |
+## Data sources
 
-Free to use, modify and share. Attribution required (see below);
-data/media derivatives stay under the same license.
+| Source | Attribution and scope |
+| --- | --- |
+| OpenPLZ | Taper imports localities, municipal identifiers and postal geography from the OpenPLZ API. OpenPLZ licenses its processed database under the ODbL. Its German sources include Destatis and © OpenStreetMap contributors. Reuse of that database or a derived database is subject to the ODbL, including its attribution and share-alike provisions. [OpenPLZ terms](https://www.openplzapi.org/en/faq/) · [German sources](https://www.openplzapi.org/en/sources/#germany) · [OSM attribution](https://www.openstreetmap.org/copyright) · [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/) |
+| Court and authority records | The court directory, FITKO/PVOG, Bundesagentur für Arbeit, BayernPortal, Destatis, xRepository and EU institutions supply records with their own terms. Keep their source identifiers, notices, URLs and dates with the records you redistribute. [Source registry](https://github.com/SNTIQ-Team/taper/blob/main/pipeline/sources.yaml) · [Source notes](https://github.com/SNTIQ-Team/taper/blob/main/docs/SOURCES.md) |
 
-## Commercial / corporate / governmental track
+The SQLite and JSONL distributions combine these sources. The CC BY grant covers SNTIQ's own contributions. It grants no additional rights in source records, third-party marks or personal information. Users retain their rights in the text they supply to Chamfer.
 
-All use by commercial entities, corporations and public-sector bodies —
-**code and media alike** — is governed by the
-**[SNTIQ-CM License v1.0](LICENSE-SNTIQ-CM)**:
+## Fonts
 
-- prior **written permission** required — free of charge;
-- a **non-harm covenant** (no use to the detriment of people: no
-  obstruction of access to justice, no profiling of vulnerable groups,
-  no automated adverse decisions without human review, no stripping of
-  caveats from answers);
-- **attribution** in all cases;
-- case-by-case **reciprocity**: a contribution to this project, or a
-  donation to a human-rights organization (preferred) or an open-source
-  project.
-
-## Designations under the SNTIQ-CM and CC licenses
-
-- **Project**: Taper
-- **Attribution string**: `Contains material from Taper by SNTIQ —
-  https://github.com/SNTIQ-Team/taper`
-- **Permission contact**: https://sntiq.com/ or this repository's issues
-
-## In every case
-
-The dataset is general information, **not legal advice**. Underlying
-records originate from official German public registers whose own terms
-govern the raw records — see [docs/SOURCES.md](docs/SOURCES.md).
+Inter uses the SIL Open Font License 1.1. DejaVu includes Bitstream Vera and other notices distributed with the fonts. Keep the respective notices when redistributing the font files. [Inter license](https://github.com/SNTIQ-Team/taper/blob/main/api/fonts/Inter-OFL.txt) · [DejaVu notices](https://github.com/SNTIQ-Team/taper/blob/main/api/fonts/LICENSE)

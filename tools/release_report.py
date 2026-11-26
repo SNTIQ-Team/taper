@@ -131,6 +131,8 @@ def main() -> int:
         encoding="utf-8")
 
     # ---- database + checksum -------------------------------------------
+    shutil.copyfile(ROOT / "LICENSING.md", OUT / "LICENSING.md")
+    shutil.copyfile(ROOT / "LICENSE-CC-BY-4.0", OUT / "LICENSE-CC-BY-4.0")
     target = OUT / "atlas.sqlite"
     shutil.copyfile(DB, target)
     sha = hashlib.sha256(target.read_bytes()).hexdigest()

@@ -1,4 +1,5 @@
 from io import BytesIO
+from zipfile import ZipFile
 
 from docx import Document
 from fastapi.testclient import TestClient
@@ -25,6 +26,11 @@ def test_downloaded_letters_preserve_the_postal_address_without_a_converter(monk
     assert docx.status_code == pdf.status_code == 200
     assert 'filename="chamfer-letter.docx"' in docx.headers["content-disposition"]
     assert 'filename="chamfer-letter.pdf"' in pdf.headers["content-disposition"]
+    with ZipFile(BytesIO(docx.content)) as parts:
+        embedded = [name for name in parts.namelist() if name.startswith("word/fonts/")]
+        assert embedded and all(name.startswith("word/fonts/Inter") for name in embedded)
+        assert b"Chamfer" in b"".join(parts.read(name) for name in parts.namelist()
+                                      if name.startswith("word/footer") and name.endswith(".xml"))
     word = Document(BytesIO(docx.content))
     word_text = " ".join(word.element.body.itertext())
     pdf_text = " ".join(page.extract_text() for page in PdfReader(BytesIO(pdf.content)).pages)

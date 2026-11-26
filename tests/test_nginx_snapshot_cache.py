@@ -72,7 +72,7 @@ class SnapshotCacheTest(unittest.TestCase):
         # only isolate paths, ports, cache size, timeouts and diagnostic header.
         prefix = config[:config.index('\nserver {')]
         prefix = re.sub(r'proxy_cache_path[^;]+;',
-                        f'proxy_cache_path {root}/cache levels=1:2 keys_zone=sntiq_cache:1m max_size=2m;', prefix)
+                        f'proxy_cache_path {root}/cache levels=1:2 keys_zone=sntiq_cache:1m max_size=2m use_temp_path=off;', prefix)
         block = location_block(config, '/kerf/')
         block = block.replace('http://127.0.0.1:8002/', f'http://127.0.0.1:{self.source.server_port}/')
         block = block.replace('proxy_read_timeout 30s;', 'proxy_read_timeout 1s; proxy_connect_timeout 1s;')
